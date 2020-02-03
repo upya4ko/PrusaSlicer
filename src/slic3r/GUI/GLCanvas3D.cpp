@@ -2174,10 +2174,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                         GLVolume &volume = *m_volumes.volumes[it->volume_idx];
                         if (! volume.offsets.empty() && state.step[istep].timestamp != volume.offsets.front()) {
                         	// The backend either produced a new hollowed mesh, or it invalidated the one that the front end has seen.
-                        	//FIXME it is an ugly hack to write the timestamp into the "offsets" field to not have to add another member variable
-                        	// to the GLVolume. We should refactor GLVolume significantly, so that the GLVolume will not contain member variables
-                        	// of various concenrs (model vs. 3D print path).
-                        	volume.offsets = { state.step[istep].timestamp };
                             volume.indexed_vertex_array.release_geometry();
                         	if (state.step[istep].state == PrintStateBase::DONE) {
 	                            TriangleMesh mesh = print_object->get_mesh(slaposHollowing);
@@ -2189,8 +2185,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                                 volume.indexed_vertex_array.load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh());
 	                        }
                             volume.finalize_geometry(true);
-	                    } else 
-	                    	volume.offsets = { state.step[istep].timestamp };
+	                    }
+                    	//FIXME it is an ugly hack to write the timestamp into the "offsets" field to not have to add another member variable
+                    	// to the GLVolume. We should refactor GLVolume significantly, so that the GLVolume will not contain member variables
+                    	// of various concenrs (model vs. 3D print path).
+                    	volume.offsets = { state.step[istep].timestamp };
                     } else if (state.step[istep].state == PrintStateBase::DONE) {
                         // Check whether there is an existing auxiliary volume to be updated, or a new auxiliary volume to be created.
 						ModelVolumeState key(state.step[istep].timestamp, instance.instance_id.id);
