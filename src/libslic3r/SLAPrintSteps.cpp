@@ -94,30 +94,26 @@ void SLAPrint::Steps::apply_printer_corrections(SLAPrintObject &po, SliceOrigin 
     faded_lyrs = std::min(po.m_slice_index.size(), faded_lyrs);
     
     auto efc = [start_efc, faded_lyrs](size_t pos) {
-        return pos * start_efc / faded_lyrs; 
+        return (faded_lyrs - 1 - pos) * start_efc / (faded_lyrs - 1); 
     };
 
     std::vector<ExPolygons> &slices = o == soModel ?
                                           po.m_model_slices :
                                           po.m_supportdata->support_slices;
-
-    auto foreach_layer = [&po, o, &slices](size_t from, size_t to, auto &&fn) {
-        for (size_t i = from; i < to; ++i) {
-            size_t idx = po.m_slice_index[i].get_slice_idx(o);
-            if (idx < slices.size())
-                fn(slices[idx], i);
+    
+    for (size_t i = 0; i < po.m_slice_index.size(); ++i) {
+        size_t idx = po.m_slice_index[i].get_slice_idx(o);
+        if (idx < slices.size())
+            slices[idx] = offset_ex(slices[idx], float(clpr_offs));
+    }
+    
+    if (start_efc > 0.) for (size_t i = 0; i < faded_lyrs; ++i) {
+        size_t idx = po.m_slice_index[i].get_slice_idx(o);
+        if (idx < slices.size()) {
+            slices[idx] = elephant_foot_compensation(slices[idx], min_w, efc(i));
+            assert(slices[idx].front().contour.is_counter_clockwise());
         }
-    };
-    
-    // Apply elephant foot + abs coorection for the first `faded_lyrs` layers
-    foreach_layer(0, faded_lyrs, [min_w, efc, doffs](ExPolygons &slice, size_t i) {
-        slice = elephant_foot_compensation(slice, min_w, doffs + efc(i));
-    });
-    
-    // Apply abs correction for the rest of the layers
-    foreach_layer(faded_lyrs, po.m_slice_index.size(), [clpr_offs](ExPolygons &slice, size_t) {
-        slice = offset_ex(slice, float(clpr_offs));
-    });
+    }
 }
 
 void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
