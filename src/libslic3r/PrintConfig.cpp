@@ -2922,13 +2922,13 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionFloat(0.5));
     
     def = this->add("hollowing_closing_distance", coFloat);
-    def->label = L("Closing distance");
+    def->label = L("Smoothing");
     def->category = L("Hollowing");
     def->tooltip  = L(
         "Hollowing is done in two steps: first, an imaginary interior is "
-        "calculated deeper (offset plus the closing distance) in the object and "
-        "then it's inflated back to the specified offset. A greater closing "
-        "distance makes the interior more rounded. At zero, the interior will "
+        "calculated deeper (wall thickness plus the smoothing value) in the object and "
+        "then it's inflated back to the specified wall thickness. A greater smoothing "
+        "value makes the interior more rounded. At zero, the interior will "
         "resemble the exterior the most.");
     def->sidetext = L("mm");
     def->min = 0;
