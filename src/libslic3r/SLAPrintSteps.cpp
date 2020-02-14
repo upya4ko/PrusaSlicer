@@ -101,7 +101,7 @@ void SLAPrint::Steps::apply_printer_corrections(SLAPrintObject &po, SliceOrigin 
                                           po.m_model_slices :
                                           po.m_supportdata->support_slices;
     
-    for (size_t i = 0; i < po.m_slice_index.size(); ++i) {
+    if (clpr_offs != 0) for (size_t i = 0; i < po.m_slice_index.size(); ++i) {
         size_t idx = po.m_slice_index[i].get_slice_idx(o);
         if (idx < slices.size())
             slices[idx] = offset_ex(slices[idx], float(clpr_offs));
@@ -109,10 +109,8 @@ void SLAPrint::Steps::apply_printer_corrections(SLAPrintObject &po, SliceOrigin 
     
     if (start_efc > 0.) for (size_t i = 0; i < faded_lyrs; ++i) {
         size_t idx = po.m_slice_index[i].get_slice_idx(o);
-        if (idx < slices.size()) {
+        if (idx < slices.size())
             slices[idx] = elephant_foot_compensation(slices[idx], min_w, efc(i));
-            assert(slices[idx].front().contour.is_counter_clockwise());
-        }
     }
 }
 
